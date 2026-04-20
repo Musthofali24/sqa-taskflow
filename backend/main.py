@@ -1,7 +1,7 @@
 # backend/main.py
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional, List
 import sqlite3
 from datetime import datetime
@@ -23,6 +23,23 @@ class TaskBase(BaseModel):
     title: str
     description: Optional[str] = None
     status: str = "pending"  # pending, in-progress, completed
+    priority: str = "medium"  # low, medium, high
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str) -> str:
+        allowed = {"pending", "in-progress", "completed"}
+        if v not in allowed:
+            raise ValueError(f"status harus salah satu dari: {', '.join(allowed)}")
+        return v
+
+    @field_validator("priority")
+    @classmethod
+    def validate_priority(cls, v: str) -> str:
+        allowed = {"low", "medium", "high"}
+        if v not in allowed:
+            raise ValueError(f"priority harus salah satu dari: {', '.join(allowed)}")
+        return v
 
 
 class TaskCreate(TaskBase):
@@ -56,11 +73,17 @@ def init_db():
             title TEXT NOT NULL,
             description TEXT,
             status TEXT DEFAULT 'pending',
+            priority TEXT DEFAULT 'medium',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP
         )
     """
     )
+    # Migrasi: tambah kolom priority jika tabel sudah ada
+    try:
+        cursor.execute("ALTER TABLE tasks ADD COLUMN priority TEXT DEFAULT 'medium'")
+    except Exception:
+        pass
     conn.commit()
     conn.close()
 
@@ -88,10 +111,10 @@ async def create_task(task: TaskCreate):
 
     cursor.execute(
         """
-        INSERT INTO tasks (title, description, status)
-        VALUES (?, ?, ?)
+        INSERT INTO tasks (title, description, status, priority)
+        VALUES (?, ?, ?, ?)
     """,
-        (task.title, task.description, task.status),
+        (task.title, task.description, task.status, task.priority),
     )
 
     task_id = cursor.lastrowid
@@ -148,10 +171,16 @@ async def update_task(task_id: int, task_update: TaskCreate):
     cursor.execute(
         """
         UPDATE tasks
-        SET title = ?, description = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+        SET title = ?, description = ?, status = ?, priority = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
     """,
-        (task_update.title, task_update.description, task_update.status, task_id),
+        (
+            task_update.title,
+            task_update.description,
+            task_update.status,
+            task_update.priority,
+            task_id,
+        ),
     )
 
     conn.commit()

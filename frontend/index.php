@@ -53,6 +53,14 @@
                             <option value="completed">Completed</option>
                         </select>
                     </div>
+                    <div class="mb-3">
+                        <label for="priority" class="form-label">Prioritas</label>
+                        <select class="form-select" id="priority" name="priority">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save me-2"></i>Simpan Tugas
                     </button>
@@ -108,6 +116,14 @@
                                 <option value="pending">Pending</option>
                                 <option value="in-progress">In Progress</option>
                                 <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editPriority" class="form-label">Prioritas</label>
+                            <select class="form-select" id="editPriority">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
                             </select>
                         </div>
                     </form>

@@ -112,6 +112,7 @@ function renderTasksList () {
                 <th>Judul</th>
                 <th>Deskripsi</th>
                 <th>Status</th>
+                <th>Prioritas</th>
                 <th>Aksi</th>
             </tr>
         </thead>
@@ -120,12 +121,14 @@ function renderTasksList () {
 
   tasks.forEach(task => {
     const statusBadge = getStatusBadge(task.status)
+    const priorityBadge = getPriorityBadge(task.priority)
     html += `
             <tr>
                 <td>${task.id}</td>
                 <td><strong>${escapeHtml(task.title)}</strong></td>
                 <td>${escapeHtml(task.description || '-')}</td>
                 <td>${statusBadge}</td>
+                <td>${priorityBadge}</td>
                 <td>
                     <button class="btn btn-sm btn-warning me-1" onclick="openEditModal(${
                       task.id
@@ -153,6 +156,18 @@ function getStatusBadge (status) {
     completed: '<span class="badge bg-success">Completed</span>'
   }
   return badges[status] || `<span class="badge bg-secondary">${status}</span>`
+}
+
+function getPriorityBadge (priority) {
+  const badges = {
+    low: '<span class="badge bg-primary">Low</span>',
+    medium: '<span class="badge bg-warning text-dark">Medium</span>',
+    high: '<span class="badge bg-danger">High</span>'
+  }
+  return (
+    badges[priority] ||
+    `<span class="badge bg-secondary">${priority || 'medium'}</span>`
+  )
 }
 
 function escapeHtml (text) {
@@ -187,7 +202,8 @@ async function handleCreateTask (e) {
   const taskData = {
     title: document.getElementById('title').value,
     description: document.getElementById('description').value,
-    status: document.getElementById('status').value
+    status: document.getElementById('status').value,
+    priority: document.getElementById('priority').value
   }
 
   try {
@@ -203,6 +219,7 @@ async function handleCreateTask (e) {
 function resetForm () {
   document.getElementById('taskForm').reset()
   document.getElementById('status').value = 'pending'
+  document.getElementById('priority').value = 'medium'
 }
 
 function openEditModal (id) {
@@ -214,6 +231,7 @@ function openEditModal (id) {
   document.getElementById('editTitle').value = task.title
   document.getElementById('editDescription').value = task.description || ''
   document.getElementById('editStatus').value = task.status
+  document.getElementById('editPriority').value = task.priority || 'medium'
 
   editModal.show()
 }
@@ -222,7 +240,8 @@ async function handleUpdateTask () {
   const taskData = {
     title: document.getElementById('editTitle').value,
     description: document.getElementById('editDescription').value,
-    status: document.getElementById('editStatus').value
+    status: document.getElementById('editStatus').value,
+    priority: document.getElementById('editPriority').value
   }
 
   try {

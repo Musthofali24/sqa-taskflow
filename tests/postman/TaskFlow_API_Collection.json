@@ -36,6 +36,12 @@
               "    pm.expect(jsonData.status).to.eql(\"pending\");",
               "});",
               "",
+              "pm.test(\"Priority should be 'high'\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('priority');",
+              "    pm.expect(jsonData.priority).to.eql(\"high\");",
+              "});",
+              "",
               "const jsonData = pm.response.json();",
               "pm.environment.set(\"task_id\", jsonData.id);"
             ],
@@ -48,7 +54,7 @@
         "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"title\": \"Belajar Automation Testing\",\n    \"description\": \"Mempelajari Postman, Newman, dan Selenium\",\n    \"status\": \"pending\"\n}"
+          "raw": "{\n    \"title\": \"Belajar Automation Testing\",\n    \"description\": \"Mempelajari Postman, Newman, dan Selenium\",\n    \"status\": \"pending\",\n    \"priority\": \"high\"\n}"
         },
         "url": {
           "raw": "{{base_url}}/api/tasks",
@@ -207,7 +213,7 @@
         "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"title\": \"Belajar Automation Testing - Updated\",\n    \"description\": \"Sudah mempelajari Postman, Newman, dan Selenium\",\n    \"status\": \"in-progress\"\n}"
+          "raw": "{\n    \"title\": \"Belajar Automation Testing - Updated\",\n    \"description\": \"Sudah mempelajari Postman, Newman, dan Selenium\",\n    \"status\": \"in-progress\",\n    \"priority\": \"medium\"\n}"
         },
         "url": {
           "raw": "{{base_url}}/api/tasks/{{task_id}}",
@@ -267,6 +273,41 @@
         "body": {
           "mode": "raw",
           "raw": "{\n    \"description\": \"Task tanpa judul - seharusnya error\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/tasks",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tasks"]
+        }
+      }
+    },
+    {
+      "name": "POST - Validation Test (Invalid Priority)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code should be 422 Unprocessable Entity\", function () {",
+              "    pm.response.to.have.status(422);",
+              "});",
+              "",
+              "pm.test(\"Error should mention invalid 'priority' field\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    const locs = jsonData.detail.map(d => d.loc).flat();",
+              "    pm.expect(locs).to.include(\"priority\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"title\": \"Test Invalid Priority\",\n    \"priority\": \"urgent\"\n}"
         },
         "url": {
           "raw": "{{base_url}}/api/tasks",
