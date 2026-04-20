@@ -1,0 +1,9 @@
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.2
+pytest==7.4.3
+selenium==4.15.2
+webdriver-manager==4.0.1
+requests==2.31.0
+locust==2.20.0
+pytest-html==4.1.1
