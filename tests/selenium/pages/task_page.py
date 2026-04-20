@@ -94,15 +94,21 @@ class TaskPage:
 
         for row in rows:
             cells = row.find_elements(By.TAG_NAME, "td")
-            if len(cells) >= 5:
+            if len(cells) >= 6:
+                action_cell = cells[-1]
                 task = {
                     "id": cells[0].text.strip(),
                     "title": cells[1].text.strip(),
                     "description": cells[2].text.strip(),
                     "status": cells[3].find_element(By.TAG_NAME, "span").text.strip(),
+                    "priority": cells[4].text.strip(),
                     "actions": {
-                        "edit": cells[4].find_element(By.CSS_SELECTOR, ".btn-warning"),
-                        "delete": cells[4].find_element(By.CSS_SELECTOR, ".btn-danger"),
+                        "edit": action_cell.find_element(
+                            By.CSS_SELECTOR, ".btn-warning"
+                        ),
+                        "delete": action_cell.find_element(
+                            By.CSS_SELECTOR, ".btn-danger"
+                        ),
                     },
                 }
                 tasks.append(task)
@@ -162,7 +168,7 @@ class TaskPage:
 
     def get_alert_message(self):
         """Mendapatkan teks dari alert yang muncul"""
-        alert = self.wait.until(EC.presence_of_element_located(self.ALERT_CONTAINER))
+        alert = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".alert")))
         return alert.text
 
     def is_empty_state_displayed(self):
@@ -194,7 +200,16 @@ class TaskPage:
         """Isi input pencarian dan tunggu hasil diperbarui"""
         search = self.driver.find_element(*self.SEARCH_INPUT)
         search.clear()
-        search.send_keys(keyword)
+        if keyword:
+            search.send_keys(keyword)
+        else:
+            self.driver.execute_script(
+                """
+                arguments[0].value = '';
+                arguments[0].dispatchEvent(new Event('input', { bubbles: true }));
+                """,
+                search,
+            )
         time.sleep(0.5)  # tunggu debounce (350ms) + render
 
     def set_filter_status(self, status_value):
@@ -206,7 +221,13 @@ class TaskPage:
     def clear_search_and_filter(self):
         """Reset search dan filter ke default"""
         search = self.driver.find_element(*self.SEARCH_INPUT)
-        search.clear()
+        self.driver.execute_script(
+            """
+            arguments[0].value = '';
+            arguments[0].dispatchEvent(new Event('input', { bubbles: true }));
+            """,
+            search,
+        )
         select = Select(self.driver.find_element(*self.FILTER_STATUS))
         select.select_by_value("")
         time.sleep(0.5)
