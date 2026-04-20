@@ -1,0 +1,272 @@
+{
+  "_description": "Data-driven test cases untuk TaskFlow API. Setiap item mendefinisikan satu skenario uji.",
+  "_schema": {
+    "id": "Nomor urut kasus uji",
+    "test_id": "ID unik kasus uji (TC-DD-XXX)",
+    "description": "Deskripsi singkat skenario",
+    "category": "valid | invalid_field | invalid_value | edge_case",
+    "payload": "Body request yang dikirim ke POST /api/tasks",
+    "expected_status": "HTTP status code yang diharapkan (201 atau 422)",
+    "assertions": "Daftar properti dan nilai yang harus ada di response"
+  },
+  "test_cases": [
+    {
+      "id": 1,
+      "test_id": "TC-DD-001",
+      "description": "Buat tugas valid dengan semua field terisi lengkap",
+      "category": "valid",
+      "payload": {
+        "title": "Implementasi Unit Test",
+        "description": "Menulis unit test untuk semua modul",
+        "status": "pending",
+        "priority": "high"
+      },
+      "expected_status": 201,
+      "assertions": {
+        "has_id": true,
+        "title": "Implementasi Unit Test",
+        "status": "pending",
+        "priority": "high",
+        "has_created_at": true
+      }
+    },
+    {
+      "id": 2,
+      "test_id": "TC-DD-002",
+      "description": "Buat tugas valid hanya dengan field title (field lain pakai default)",
+      "category": "valid",
+      "payload": {
+        "title": "Tugas Minimal"
+      },
+      "expected_status": 201,
+      "assertions": {
+        "has_id": true,
+        "title": "Tugas Minimal",
+        "status": "pending",
+        "priority": "medium",
+        "has_created_at": true
+      }
+    },
+    {
+      "id": 3,
+      "test_id": "TC-DD-003",
+      "description": "Buat tugas dengan status in-progress dan prioritas low",
+      "category": "valid",
+      "payload": {
+        "title": "Tugas Sedang Berjalan",
+        "description": "Sedang dalam proses pengerjaan",
+        "status": "in-progress",
+        "priority": "low"
+      },
+      "expected_status": 201,
+      "assertions": {
+        "has_id": true,
+        "title": "Tugas Sedang Berjalan",
+        "status": "in-progress",
+        "priority": "low"
+      }
+    },
+    {
+      "id": 4,
+      "test_id": "TC-DD-004",
+      "description": "Buat tugas dengan status completed dan prioritas medium",
+      "category": "valid",
+      "payload": {
+        "title": "Tugas Sudah Selesai",
+        "description": "Tugas ini sudah dikerjakan",
+        "status": "completed",
+        "priority": "medium"
+      },
+      "expected_status": 201,
+      "assertions": {
+        "has_id": true,
+        "title": "Tugas Sudah Selesai",
+        "status": "completed",
+        "priority": "medium"
+      }
+    },
+    {
+      "id": 5,
+      "test_id": "TC-DD-005",
+      "description": "Buat tugas dengan deskripsi kosong string (bukan null)",
+      "category": "valid",
+      "payload": {
+        "title": "Tugas Tanpa Deskripsi",
+        "description": "",
+        "status": "pending",
+        "priority": "high"
+      },
+      "expected_status": 201,
+      "assertions": {
+        "has_id": true,
+        "title": "Tugas Tanpa Deskripsi",
+        "status": "pending",
+        "priority": "high"
+      }
+    },
+    {
+      "id": 6,
+      "test_id": "TC-DD-006",
+      "description": "Buat tugas dengan judul sangat panjang (edge case)",
+      "category": "edge_case",
+      "payload": {
+        "title": "Ini adalah judul tugas yang sangat panjang untuk menguji batas maksimum input dan memastikan sistem dapat menangani string yang panjang tanpa error atau truncation yang tidak diharapkan oleh pengguna",
+        "description": "Deskripsi normal",
+        "status": "pending",
+        "priority": "low"
+      },
+      "expected_status": 201,
+      "assertions": {
+        "has_id": true,
+        "status": "pending",
+        "priority": "low"
+      }
+    },
+    {
+      "id": 7,
+      "test_id": "TC-DD-007",
+      "description": "Buat tugas dengan karakter spesial di judul (XSS prevention edge case)",
+      "category": "edge_case",
+      "payload": {
+        "title": "<script>alert('xss')</script> Tugas Spesial",
+        "description": "Mengandung karakter HTML",
+        "status": "pending",
+        "priority": "medium"
+      },
+      "expected_status": 201,
+      "assertions": {
+        "has_id": true,
+        "status": "pending"
+      }
+    },
+    {
+      "id": 8,
+      "test_id": "TC-DD-008",
+      "description": "Buat tugas dengan judul berisi unicode / emoji",
+      "category": "edge_case",
+      "payload": {
+        "title": "Tugas Penting Selesaikan!",
+        "description": "Unicode dan emoji test",
+        "status": "in-progress",
+        "priority": "high"
+      },
+      "expected_status": 201,
+      "assertions": {
+        "has_id": true,
+        "status": "in-progress",
+        "priority": "high"
+      }
+    },
+    {
+      "id": 9,
+      "test_id": "TC-DD-009",
+      "description": "Gagal: title tidak dikirim sama sekali (field wajib)",
+      "category": "invalid_field",
+      "payload": {
+        "description": "Tidak ada title",
+        "status": "pending",
+        "priority": "medium"
+      },
+      "expected_status": 422,
+      "assertions": {
+        "has_detail": true,
+        "error_field": "title"
+      }
+    },
+    {
+      "id": 10,
+      "test_id": "TC-DD-010",
+      "description": "Gagal: status memiliki nilai tidak valid",
+      "category": "invalid_value",
+      "payload": {
+        "title": "Tugas Status Salah",
+        "status": "done",
+        "priority": "medium"
+      },
+      "expected_status": 422,
+      "assertions": {
+        "has_detail": true,
+        "error_field": "status"
+      }
+    },
+    {
+      "id": 11,
+      "test_id": "TC-DD-011",
+      "description": "Gagal: priority memiliki nilai tidak valid",
+      "category": "invalid_value",
+      "payload": {
+        "title": "Tugas Priority Salah",
+        "status": "pending",
+        "priority": "urgent"
+      },
+      "expected_status": 422,
+      "assertions": {
+        "has_detail": true,
+        "error_field": "priority"
+      }
+    },
+    {
+      "id": 12,
+      "test_id": "TC-DD-012",
+      "description": "Gagal: title berisi null (bukan string)",
+      "category": "invalid_field",
+      "payload": {
+        "title": null,
+        "status": "pending",
+        "priority": "low"
+      },
+      "expected_status": 422,
+      "assertions": {
+        "has_detail": true,
+        "error_field": "title"
+      }
+    },
+    {
+      "id": 13,
+      "test_id": "TC-DD-013",
+      "description": "Gagal: payload kosong sepenuhnya",
+      "category": "invalid_field",
+      "payload": {},
+      "expected_status": 422,
+      "assertions": {
+        "has_detail": true,
+        "error_field": "title"
+      }
+    },
+    {
+      "id": 14,
+      "test_id": "TC-DD-014",
+      "description": "Gagal: kombinasi status dan priority tidak valid sekaligus",
+      "category": "invalid_value",
+      "payload": {
+        "title": "Double Invalid",
+        "status": "archived",
+        "priority": "critical"
+      },
+      "expected_status": 422,
+      "assertions": {
+        "has_detail": true
+      }
+    },
+    {
+      "id": 15,
+      "test_id": "TC-DD-015",
+      "description": "Buat tugas dengan deskripsi panjang dan semua kombinasi field valid",
+      "category": "valid",
+      "payload": {
+        "title": "Riset & Analisis Kebutuhan Sistem",
+        "description": "Melakukan riset mendalam tentang kebutuhan sistem, menganalisis use case, membuat dokumen spesifikasi, melakukan review bersama stakeholder, dan finalisasi dokumen persyaratan sebelum masuk ke fase desain.",
+        "status": "in-progress",
+        "priority": "high"
+      },
+      "expected_status": 201,
+      "assertions": {
+        "has_id": true,
+        "title": "Riset & Analisis Kebutuhan Sistem",
+        "status": "in-progress",
+        "priority": "high",
+        "has_created_at": true
+      }
+    }
+  ]
+}

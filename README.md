@@ -59,7 +59,52 @@ cd tests/selenium
 pytest test_frontend.py -v --html=../../reports/frontend-report.html --self-contained-html
 ```
 
-### 5. Performance Testing dengan Locust
+### 5. Data-Driven Testing (Challenge 3)
+
+Test API otomatis berbasis file JSON. Setiap baris di `task_test_data.json` menjadi satu skenario uji.
+
+```bash
+# Dari folder taskflow/
+pytest tests/data_driven/test_data_driven.py -v
+
+# Dengan HTML report
+pytest tests/data_driven/test_data_driven.py -v \
+    --html=reports/data-driven-report.html --self-contained-html
+```
+
+**Struktur `tests/data_driven/task_test_data.json`:**
+
+Setiap objek dalam array `test_cases` memiliki field:
+
+| Field             | Tipe    | Keterangan                                             |
+| ----------------- | ------- | ------------------------------------------------------ |
+| `test_id`         | string  | ID unik, misal `TC-DD-001`                             |
+| `description`     | string  | Deskripsi skenario                                     |
+| `category`        | string  | `valid`, `invalid_field`, `invalid_value`, `edge_case` |
+| `payload`         | object  | Body JSON yang dikirim ke `POST /api/tasks`            |
+| `expected_status` | integer | HTTP status code yang diharapkan (`201` atau `422`)    |
+| `assertions`      | object  | Properti dan nilai yang harus ada/cocok di respons     |
+
+**Kunci assertions yang didukung:**
+
+| Kunci            | Perilaku                                                |
+| ---------------- | ------------------------------------------------------- |
+| `has_id`         | Memastikan field `id` bertipe integer ada di respons    |
+| `has_created_at` | Memastikan field `created_at` terisi                    |
+| `has_detail`     | Memastikan field `detail` ada (untuk error 422)         |
+| `error_field`    | Memastikan nama field tersebut muncul di `detail[].loc` |
+| field lainnya    | Pengecekan nilai langsung, misal `"status": "pending"`  |
+
+**Distribusi 15 test case:**
+
+| Kategori        | Jumlah | Contoh                                          |
+| --------------- | ------ | ----------------------------------------------- |
+| `valid`         | 6      | Field lengkap, hanya title, deskripsi panjang   |
+| `edge_case`     | 3      | Judul sangat panjang, karakter spesial, unicode |
+| `invalid_field` | 3      | Tanpa title, title null, payload kosong         |
+| `invalid_value` | 3      | Status salah, priority salah, keduanya salah    |
+
+### 6. Performance Testing dengan Locust
 
 ```bash
 pip install locust
@@ -74,7 +119,7 @@ locust -f tests/performance/locustfile.py \
     --html=reports/performance-report.html
 ```
 
-### 6. Jalankan Semua Tests
+### 7. Jalankan Semua Tests
 
 ```bash
 python run_all_tests.py
@@ -107,5 +152,6 @@ python run_all_tests.py
 
 - **API Tests (Postman/Newman):** 11 test cases — CRUD, validasi, filter status, pencarian keyword, kombinasi filter+search, empty result
 - **UI Tests (Selenium):** 16 test cases — CRUD, modal, badge, filter status, pencarian keyword, empty search result, clear search
+- **Data-Driven Tests (pytest + JSON):** 31 test — 15 skenario parametrized dari JSON, 6 validasi file data, 6 filter & search, 4 CRUD lifecycle
 - **Performance Tests (Locust):** Load test simulasi pengguna bersamaan
 - **CI/CD:** GitHub Actions workflow otomatis
