@@ -73,11 +73,21 @@
 
         <!-- Daftar Tugas -->
         <div class="card shadow-sm">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h5 class="mb-0"><i class="fas fa-list text-primary me-2"></i>Daftar Tugas</h5>
-                <button class="btn btn-sm btn-outline-primary" id="refreshBtn">
-                    <i class="fas fa-sync-alt me-1"></i>Refresh
-                </button>
+                <div class="d-flex gap-2 flex-wrap align-items-center">
+                    <input type="text" class="form-control form-control-sm" id="searchInput"
+                        placeholder="Cari judul / deskripsi..." style="min-width:180px;">
+                    <select class="form-select form-select-sm" id="filterStatus" style="min-width:140px;">
+                        <option value="">Semua Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                    <button class="btn btn-sm btn-outline-primary" id="refreshBtn">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                    </button>
+                </div>
             </div>
             <div class="card-body">
                 <div id="tasksList">

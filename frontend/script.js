@@ -3,6 +3,7 @@
 let tasks = []
 let editingTaskId = null
 let editModal = null
+let searchDebounceTimer = null
 
 // ========== Initialization ==========
 document.addEventListener('DOMContentLoaded', function () {
@@ -17,16 +18,30 @@ document.addEventListener('DOMContentLoaded', function () {
     .getElementById('taskForm')
     .addEventListener('submit', handleCreateTask)
   document.getElementById('resetForm').addEventListener('click', resetForm)
-  document.getElementById('refreshBtn').addEventListener('click', loadTasks)
+  document.getElementById('refreshBtn').addEventListener('click', () => {
+    document.getElementById('searchInput').value = ''
+    document.getElementById('filterStatus').value = ''
+    loadTasks()
+  })
   document
     .getElementById('saveEditBtn')
     .addEventListener('click', handleUpdateTask)
+
+  // Search & filter listeners with debounce
+  document.getElementById('searchInput').addEventListener('input', () => {
+    clearTimeout(searchDebounceTimer)
+    searchDebounceTimer = setTimeout(loadTasks, 350)
+  })
+  document.getElementById('filterStatus').addEventListener('change', loadTasks)
 })
 
 // ========== API Functions ==========
-async function fetchTasks () {
+async function fetchTasks (params = {}) {
   try {
-    const response = await fetch(apiUrl(API_CONFIG.ENDPOINTS.TASKS))
+    const url = new URL(apiUrl(API_CONFIG.ENDPOINTS.TASKS))
+    if (params.status) url.searchParams.set('status', params.status)
+    if (params.search) url.searchParams.set('search', params.search)
+    const response = await fetch(url.toString())
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
     return await response.json()
   } catch (error) {
@@ -87,15 +102,25 @@ async function deleteTask (id) {
 
 // ========== UI Functions ==========
 async function loadTasks () {
-  tasks = await fetchTasks()
-  renderTasksList()
+  const search = document.getElementById('searchInput')?.value.trim() || ''
+  const status = document.getElementById('filterStatus')?.value || ''
+  tasks = await fetchTasks({ search, status })
+  renderTasksList(search, status)
 }
 
-function renderTasksList () {
+function renderTasksList (search = '', filterStatus = '') {
   const container = document.getElementById('tasksList')
 
   if (tasks.length === 0) {
-    container.innerHTML = `
+    const isFiltered = search || filterStatus
+    container.innerHTML = isFiltered
+      ? `
+            <div class="text-center text-muted py-5">
+                <i class="fas fa-search fa-3x mb-3"></i>
+                <p>Tidak ada tugas yang cocok dengan pencarian.</p>
+            </div>
+        `
+      : `
             <div class="text-center text-muted py-5">
                 <i class="fas fa-clipboard-list fa-3x mb-3"></i>
                 <p>Belum ada tugas. Tambahkan tugas pertama Anda!</p>

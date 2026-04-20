@@ -315,6 +315,154 @@
           "path": ["api", "tasks"]
         }
       }
+    },
+    {
+      "name": "GET - Filter Tasks by Status",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code should be 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response should be an array\", function () {",
+              "    pm.expect(pm.response.json()).to.be.an('array');",
+              "});",
+              "",
+              "pm.test(\"All tasks should have status 'pending'\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    jsonData.forEach(task => {",
+              "        pm.expect(task.status).to.eql('pending');",
+              "    });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/api/tasks?status=pending",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tasks"],
+          "query": [{ "key": "status", "value": "pending" }]
+        }
+      }
+    },
+    {
+      "name": "GET - Search Tasks by Keyword",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code should be 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response should be an array\", function () {",
+              "    pm.expect(pm.response.json()).to.be.an('array');",
+              "});",
+              "",
+              "pm.test(\"All results should contain search keyword\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    const keyword = 'Automation';",
+              "    jsonData.forEach(task => {",
+              "        const inTitle = task.title.toLowerCase().includes(keyword.toLowerCase());",
+              "        const inDesc = task.description && task.description.toLowerCase().includes(keyword.toLowerCase());",
+              "        pm.expect(inTitle || inDesc).to.be.true;",
+              "    });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/api/tasks?search=Automation",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tasks"],
+          "query": [{ "key": "search", "value": "Automation" }]
+        }
+      }
+    },
+    {
+      "name": "GET - Filter by Status AND Search",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code should be 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response should be an array\", function () {",
+              "    pm.expect(pm.response.json()).to.be.an('array');",
+              "});",
+              "",
+              "pm.test(\"Each result matches both status filter and keyword\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    const keyword = 'Belajar';",
+              "    jsonData.forEach(task => {",
+              "        pm.expect(task.status).to.eql('pending');",
+              "        const inTitle = task.title.toLowerCase().includes(keyword.toLowerCase());",
+              "        const inDesc = task.description && task.description.toLowerCase().includes(keyword.toLowerCase());",
+              "        pm.expect(inTitle || inDesc).to.be.true;",
+              "    });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/api/tasks?status=pending&search=Belajar",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tasks"],
+          "query": [
+            { "key": "status", "value": "pending" },
+            { "key": "search", "value": "Belajar" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET - Search Returns Empty for No Match",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code should be 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response should be empty array for no-match keyword\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array').with.lengthOf(0);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/api/tasks?search=XXXXXXXXNOTEXIST999",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tasks"],
+          "query": [{ "key": "search", "value": "XXXXXXXXNOTEXIST999" }]
+        }
+      }
     }
   ],
   "variable": [

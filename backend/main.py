@@ -1,5 +1,5 @@
 # backend/main.py
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, field_validator
 from typing import Optional, List
@@ -129,11 +129,32 @@ async def create_task(task: TaskCreate):
 
 
 @app.get("/api/tasks", response_model=List[Task])
-async def get_all_tasks():
-    """Mendapatkan semua tugas"""
+async def get_all_tasks(
+    status: Optional[str] = Query(
+        None, description="Filter berdasarkan status: pending, in-progress, completed"
+    ),
+    search: Optional[str] = Query(
+        None, description="Cari berdasarkan judul atau deskripsi"
+    ),
+):
+    """Mendapatkan semua tugas, dengan opsional filter status dan pencarian keyword"""
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM tasks ORDER BY id DESC")
+
+    query = "SELECT * FROM tasks WHERE 1=1"
+    params = []
+
+    if status:
+        query += " AND status = ?"
+        params.append(status)
+
+    if search:
+        query += " AND (title LIKE ? OR description LIKE ?)"
+        params.append(f"%{search}%")
+        params.append(f"%{search}%")
+
+    query += " ORDER BY id DESC"
+    cursor.execute(query, params)
     tasks = [dict(row) for row in cursor.fetchall()]
     conn.close()
     return tasks

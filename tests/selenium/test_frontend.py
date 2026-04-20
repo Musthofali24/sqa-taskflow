@@ -237,3 +237,83 @@ class TestTaskFlowFrontend:
         empty_text = self.driver.find_element(*self.page.EMPTY_STATE).text
         assert "Belum ada tugas" in empty_text
         print("✓ Empty state ditampilkan dengan benar")
+
+    def test_search_filters_tasks_by_keyword(self):
+        """TC-FE-013: Pencarian menyaring tugas berdasarkan keyword"""
+        # Arrange - buat 2 tugas dengan judul berbeda
+        unique = str(int(time.time()))
+        self.page.create_task(f"FINDME_{unique}", "bisa ditemukan", "pending")
+        self.page.wait_for_alert_to_disappear()
+        self.page.create_task(f"OTHER_{unique}", "tidak cocok", "pending")
+        self.page.wait_for_alert_to_disappear()
+
+        # Act - ketik keyword di search
+        self.page.set_search(f"FINDME_{unique}")
+
+        # Assert - hanya tugas yang cocok yang tampil
+        titles = self.page.get_visible_titles()
+        assert any(
+            f"FINDME_{unique}" in t for t in titles
+        ), "Tugas yang cocok tidak muncul"
+        assert not any(
+            f"OTHER_{unique}" in t for t in titles
+        ), "Tugas yang tidak cocok ikut muncul"
+        print("✓ Pencarian berhasil menyaring tugas berdasarkan keyword")
+
+    def test_filter_by_status_shows_only_matching(self):
+        """TC-FE-014: Filter status hanya menampilkan tugas dengan status yang dipilih"""
+        # Arrange - buat tugas pending dan completed
+        unique = str(int(time.time()))
+        self.page.create_task(f"Pending_{unique}", "", "pending")
+        self.page.wait_for_alert_to_disappear()
+        self.page.create_task(f"Completed_{unique}", "", "completed")
+        self.page.wait_for_alert_to_disappear()
+
+        # Act - pilih filter "pending"
+        self.page.set_filter_status("pending")
+
+        # Assert - semua baris berstatus Pending
+        tasks_shown = self.page.get_all_tasks()
+        for task in tasks_shown:
+            assert (
+                task["status"].lower() == "pending"
+            ), f"Tugas dengan status '{task['status']}' muncul padahal filter=pending"
+        print("✓ Filter status hanya menampilkan tugas 'pending'")
+
+    def test_search_empty_result_shows_no_match_message(self):
+        """TC-FE-015: Pencarian tanpa hasil menampilkan pesan 'tidak ada'"""
+        # Act - cari keyword yang pasti tidak ada
+        self.page.set_search("XXXXXXXXXNOTEXIST_99999")
+
+        # Assert - empty state dengan pesan pencarian
+        import time as t
+
+        t.sleep(0.5)
+        container = self.driver.find_element(*self.page.EMPTY_STATE)
+        assert container.is_displayed(), "Pesan kosong tidak muncul"
+        assert (
+            "tidak ada" in container.text.lower() or "cocok" in container.text.lower()
+        ), f"Pesan tidak sesuai: '{container.text}'"
+        print("✓ Pencarian tanpa hasil menampilkan pesan yang sesuai")
+
+    def test_clear_search_restores_all_tasks(self):
+        """TC-FE-016: Menghapus pencarian menampilkan kembali semua tugas"""
+        # Arrange - pastikan ada setidaknya 1 tugas
+        unique = str(int(time.time()))
+        self.page.create_task(f"Restore_{unique}", "", "pending")
+        self.page.wait_for_alert_to_disappear()
+        total_before = self.page.get_visible_row_count()
+
+        # Act - cari sesuatu lalu clear
+        self.page.set_search("XXXXXXXXXNOTEXIST_99999")
+        import time as t
+
+        t.sleep(0.5)
+        self.page.set_search("")
+
+        # Assert - kembali ke jumlah semula
+        total_after = self.page.get_visible_row_count()
+        assert (
+            total_after >= total_before
+        ), "Jumlah tugas berkurang setelah clear search"
+        print("✓ Menghapus pencarian menampilkan kembali semua tugas")

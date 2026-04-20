@@ -40,6 +40,10 @@ class TaskPage:
     # Empty state
     EMPTY_STATE = (By.CSS_SELECTOR, ".text-center.text-muted")
 
+    # Search & filter
+    SEARCH_INPUT = (By.ID, "searchInput")
+    FILTER_STATUS = (By.ID, "filterStatus")
+
     def __init__(self, driver):
         self.driver = driver
         self.wait = WebDriverWait(driver, 10)
@@ -185,3 +189,39 @@ class TaskPage:
             alert.accept()
         else:
             alert.dismiss()
+
+    def set_search(self, keyword):
+        """Isi input pencarian dan tunggu hasil diperbarui"""
+        search = self.driver.find_element(*self.SEARCH_INPUT)
+        search.clear()
+        search.send_keys(keyword)
+        time.sleep(0.5)  # tunggu debounce (350ms) + render
+
+    def set_filter_status(self, status_value):
+        """Pilih status pada dropdown filter"""
+        select = Select(self.driver.find_element(*self.FILTER_STATUS))
+        select.select_by_value(status_value)
+        time.sleep(0.5)
+
+    def clear_search_and_filter(self):
+        """Reset search dan filter ke default"""
+        search = self.driver.find_element(*self.SEARCH_INPUT)
+        search.clear()
+        select = Select(self.driver.find_element(*self.FILTER_STATUS))
+        select.select_by_value("")
+        time.sleep(0.5)
+
+    def get_visible_row_count(self):
+        """Kembalikan jumlah baris yang terlihat di tabel"""
+        rows = self.driver.find_elements(*self.TASKS_TABLE_ROWS)
+        return len(rows)
+
+    def get_visible_titles(self):
+        """Kembalikan list judul tugas yang saat ini ditampilkan di tabel"""
+        rows = self.driver.find_elements(*self.TASKS_TABLE_ROWS)
+        titles = []
+        for row in rows:
+            cells = row.find_elements(By.TAG_NAME, "td")
+            if len(cells) >= 2:
+                titles.append(cells[1].text.strip())
+        return titles

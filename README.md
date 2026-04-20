@@ -82,18 +82,30 @@ python run_all_tests.py
 
 ## API Endpoints
 
-| Method | Endpoint        | Deskripsi          |
-| ------ | --------------- | ------------------ |
-| GET    | /               | Welcome message    |
-| POST   | /api/tasks      | Buat tugas baru    |
-| GET    | /api/tasks      | Daftar semua tugas |
-| GET    | /api/tasks/{id} | Detail satu tugas  |
-| PUT    | /api/tasks/{id} | Update tugas       |
-| DELETE | /api/tasks/{id} | Hapus tugas        |
+| Method | Endpoint                                 | Deskripsi                        |
+| ------ | ---------------------------------------- | -------------------------------- |
+| GET    | /                                        | Welcome message                  |
+| POST   | /api/tasks                               | Buat tugas baru                  |
+| GET    | /api/tasks                               | Daftar semua tugas               |
+| GET    | /api/tasks?status=pending                | Filter berdasarkan status        |
+| GET    | /api/tasks?search=keyword                | Cari berdasarkan judul/deskripsi |
+| GET    | /api/tasks?status=pending&search=keyword | Kombinasi filter & pencarian     |
+| GET    | /api/tasks/{id}                          | Detail satu tugas                |
+| PUT    | /api/tasks/{id}                          | Update tugas                     |
+| DELETE | /api/tasks/{id}                          | Hapus tugas                      |
+
+### Field Tugas
+
+| Field       | Tipe   | Nilai yang diizinkan                  |
+| ----------- | ------ | ------------------------------------- |
+| title       | string | wajib diisi                           |
+| description | string | opsional                              |
+| status      | string | `pending`, `in-progress`, `completed` |
+| priority    | string | `low`, `medium` (default), `high`     |
 
 ## Test Coverage
 
-- **API Tests (Postman/Newman):** 7 test cases mencakup CRUD + negative test
-- **UI Tests (Selenium):** 12 test cases menggunakan Page Object Model
+- **API Tests (Postman/Newman):** 11 test cases — CRUD, validasi, filter status, pencarian keyword, kombinasi filter+search, empty result
+- **UI Tests (Selenium):** 16 test cases — CRUD, modal, badge, filter status, pencarian keyword, empty search result, clear search
 - **Performance Tests (Locust):** Load test simulasi pengguna bersamaan
 - **CI/CD:** GitHub Actions workflow otomatis
